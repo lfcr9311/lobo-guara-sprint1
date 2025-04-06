@@ -1,0 +1,86 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String       @id @default(cuid())
+  name         String
+  email        String       @unique
+  password     String
+  phone        String
+  city         String
+  state        String
+  language     LanguageEnum
+  createdAt    DateTime     @default(now()) @map("created_at")
+  deletedAt    DateTime?    @map("deleted_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+  Refugies     Refugie?
+  Institutions Institution?
+  Admin        Admin?
+  Volunteer    Volunteer?
+  role         RoleEnum
+
+  @@map("users")
+}
+
+model Refugie {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@map("refugies")
+}
+
+model Institution {
+  id        String                @id @default(cuid())
+  cnpj      String?               @unique
+  latitude  Float
+  longitude Float
+  userId    String                @unique
+  status    InstitutionStatusEnum
+  user      User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Volunteer Volunteer[]
+
+  @@map("institutions")
+}
+
+model Admin {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@map("admins")
+}
+
+model Volunteer {
+  id            String      @id @default(cuid())
+  userId        String      @unique
+  institutionId String
+  user          User        @relation(fields: [userId], references: [id])
+  institution   Institution @relation(fields: [institutionId], references: [id])
+
+  @@map("volunteers")
+}
+
+enum RoleEnum {
+  ADMIN
+  REFUGIE
+  INSTITUTION
+}
+
+enum InstitutionStatusEnum {
+  WAITING
+  ACTIVE
+  INACTIVE
+}
+
+enum LanguageEnum {
+  PORTUGUESE
+  ENGLISH
+  SPANISH
+}
